@@ -12,6 +12,9 @@ git clone https://github.com/Mus4J/machinelearning-course.git
 
 In order to run the project you need some dependence packages
 
+### Python3
+https://www.python.org/downloads/
+
 ### Jsonline
 ```
 pip install jsonlines
@@ -19,3 +22,7 @@ pip install jsonlines
 
 
 ## Usage
+
+### Generate data
+
+You can generate data by running the script on commandline by using 
