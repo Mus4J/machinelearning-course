@@ -143,8 +143,12 @@ def main(argv):
         opts, args = getopt.getopt(
             argv, "h:m:o:ip:", ["help=", "method=", "file=", "iprange="])
     except getopt.GetoptError:
-        print('Error')
-        print('     -o | --ofile       Name of file where data will be generated\n     -ip | --iprange     Range of ips valid data will be generated along side of randomised ips data')
+        print('Message: Error')
+        print()
+        print('     -o  | --ofile       Name of file where data will be generated\n     -ip | --iprange     Range of ips valid data will be generated along side of randomised ips data')
+        print(
+            "     -m  | --method      Method to be used. Different options are 'base' and 'anomalydata'. If not selected script generates base data. -m['base'/'anomalydata'] | --method['base'/'anomalydata']")
+        print()
         print('Example line: test.py -m <method> -o <outputfile> -ip <iprange>')
         sys.exit(2)
     for opt, arg in opts:
@@ -156,8 +160,12 @@ def main(argv):
         execute_validdatageneration(outputfile, ip_range)
         print('JEEE')
     else:
-        print('Argument missing.')
-        print('     -o | --ofile       Name of file where data will be generated\n     -ip | --iprange     Range of ips valid data will be generated along side of randomised ips data')
+        print('Message: Argument missing.')
+        print()
+        print('     -o  | --ofile       Name of file where data will be generated\n     -ip | --iprange     Range of ips valid data will be generated along side of randomised ips data')
+        print(
+            "     -m  | --method      Method to be used. Different options are 'base' and 'anomalydata'. If not selected script generates base data. -m['base'/'anomalydata'] | --method['base'/'anomalydata']")
+        print()
         print('Example line: test.py -m <method> -o <outputfile> -ip <iprange>')
         sys.exit(2)
 
