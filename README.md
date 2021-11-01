@@ -38,5 +38,5 @@ Optional: Method to be used. Different options are "base" and "anomalydata"'. If
 
 Example line:
 ```
-test.py -m base -o 'example.txt' -ip 192.168.0.
+python3 DataGeneration.py -m base -o 'example.txt' -ip 192.168.0.
 ```
