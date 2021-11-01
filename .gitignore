@@ -1,2 +1,6 @@
 # ignore README.md
 /README.md
+
+# ignore generated files
+.json
+.txt
