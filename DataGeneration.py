@@ -1,0 +1,167 @@
+from random import randrange
+from datetime import timedelta
+from datetime import datetime
+import random
+import sys
+import getopt
+import json
+import jsonlines
+
+# Generates 1 datarow with random ip inside of the range and writes it in the file
+
+
+def generate_valid_data_IPRANGE(file, iprange):
+    for x in range(7500):
+        text = str(x) + ' | ' + str(random_date().strftime("%Y%m%d%H%M%S")) + ' | ' + random_ip_INRANGE(iprange) + \
+            ' | 10.0.0.1 | HTTP | ' + str(random.randrange(
+                1000, 2000)) + ' | POST /api/example/login/?venue=dms HTTP/1.1 (application/json)\n'
+        file.write(text)
+        generate_application_json_data(x, True)
+
+# Generates 1 datarow with random ip outside of the range and writes it in the file
+
+
+def generate_valid_data_WIDEIP(file):
+    text = ''
+    for x in range(2500):
+        text = str(x) + ' | ' + str(random_date().strftime("%Y%m%d%H%M%S")) + ' | ' + random_ip_NOTINRANGE() + \
+            ' | 10.0.0.1 | HTTP | ' + str(random.randrange(
+                1000, 2000)) + ' | POST /api/example/login/?venue=dms HTTP/1.1 (application/json)\n'
+        file.write(text)
+        generate_application_json_data(x+7500, False)
+
+
+# Return random date between 1.1.2021 and 30.10.2021
+
+
+def random_date():
+    delta = datetime.strptime('10/30/2021 1:30 PM', '%m/%d/%Y %I:%M %p') - \
+        datetime.strptime('1/1/2021 4:50 AM', '%m/%d/%Y %I:%M %p')
+    int_delta = (delta.days * 24 * 60 * 60) + delta.seconds
+    random_second = randrange(int_delta)
+    return datetime.strptime('1/1/2021 4:50 AM', '%m/%d/%Y %I:%M %p') + timedelta(seconds=random_second)
+
+
+# JavaScript Object Notation: application/json - data
+#	Object
+#		Member Key: 'email'
+#			Sring: 'test.test.fi'
+#			Key: 'email'
+#		Memeber Key: 'password'
+#			String: 'salasana'
+#			Key: 'password'
+
+
+def generate_application_json_data(index, bool):
+    if bool:
+        email = generate_valid_email()
+    else:
+        email = generate_random_string() + '@gmail.com'
+    password = generate_random_string()
+
+    data = {}
+    data['JavaScript Object Notation: application/json'] = []
+    data['JavaScript Object Notation: application/json'].append({
+        'Object': {
+            'Member Key:': {
+                'email': {
+                    'String': email,
+                    'Key': 'email'
+                },
+                'password': {
+                    'String': password,
+                    'Key': 'password'
+                }
+            }
+        }
+    })
+    with jsonlines.open('data.json', 'a') as json_file:
+        json_file.write(data)
+
+    # Json tiedoston lukeminen:
+    # with jsonlines.open('data.json') as json_file:
+    #   for obj in json_file:
+    #       print(obj)
+
+
+email = ['aku.ankka@comppanyx.fi', 'minni.hiiri@comppanyx.fi', 'roope.ankka@comppanyx.fi', 'hessu.hopo@comppanyx.fi', 'milla.magia@comppanyx.fi',
+         'tupu.ankka@comppanyx.fi', 'lupu.ankka@comppanyx.fi', 'hupu.ankka@comppanyx.fi', 'it@comppanyx.fi', 'support@comppanyx.fi', 'asiakaspalvelu@comppanyx.fi']
+letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+           'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'y', 'z']
+
+# Generoi sähköpostiosoitteita ankkalinnalaisista tms. jotka ovat yrityksen työntekijöitä
+
+
+def generate_valid_email():
+    return email[randrange(11)]
+    # kävisikö myös return random.sample(email, 1)[0]
+
+
+# Generoi random merkkijonon jota voidaan käyttää sekä sähköpostiin, että salasanaan
+def generate_random_string():
+    string = ''
+    for _ in range(7):
+        letter = random.sample(letters, 1)[0]
+        string += letter
+
+    return string
+
+# Generates random ip which is inside of set range
+
+
+def random_ip_INRANGE(ip_range):
+    ip = ip_range
+    ip += '.'.join('%s' % random.randint(0, 255) for i in range(1))
+    return ip
+
+# Generates totally random ip address
+
+
+def random_ip_NOTINRANGE():
+    ip = '.'.join('%s' % random.randint(0, 255) for i in range(4))
+    return ip
+
+# Entry method to generate file
+# Testi tiedosto = data.txt
+# Testi iprange = '192.168.'
+
+
+def execute_validdatageneration(outputfile, iprange):
+    file = open(outputfile, 'w')
+    generate_valid_data_IPRANGE(file, iprange)
+    generate_valid_data_WIDEIP(file)
+    file.close()
+
+# Entry method to check arguments
+
+
+def main(argv):
+    outputfile = ''
+    ip_range = ''
+    print(len(argv))
+    try:
+        opts, args = getopt.getopt(
+            argv, "h:m:o:ip:", ["help=", "method=", "file=", "iprange="])
+    except getopt.GetoptError:
+        print('Error')
+        print('     -o | --ofile       Name of file where data will be generated\n     -ip | --iprange     Range of ips valid data will be generated along side of randomised ips data')
+        print('Example line: test.py -m <method> -o <outputfile> -ip <iprange>')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ("-o", "--ofile"):
+            outputfile = arg
+        elif opt in ("-ip", "--iprange"):
+            ip_range = arg
+    if(outputfile != '' or ip_range != ''):
+        execute_validdatageneration(outputfile, ip_range)
+        print('JEEE')
+    else:
+        print('Argument missing.')
+        print('     -o | --ofile       Name of file where data will be generated\n     -ip | --iprange     Range of ips valid data will be generated along side of randomised ips data')
+        print('Example line: test.py -m <method> -o <outputfile> -ip <iprange>')
+        sys.exit(2)
+
+
+if __name__ == "__main__":
+
+    main(sys.argv[1:])
