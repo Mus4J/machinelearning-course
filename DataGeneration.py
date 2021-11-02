@@ -141,7 +141,7 @@ def main(argv):
     print(len(argv))
     try:
         opts, args = getopt.getopt(
-            argv, "h:m:o:ip:", ["help=", "method=", "file=", "iprange="])
+            argv, "h:m:o:ip:", ["help=", "method=", "ofile=", "iprange="])
     except getopt.GetoptError:
         print('Message: Error')
         print()
@@ -156,7 +156,7 @@ def main(argv):
             outputfile = arg
         elif opt in ("-ip", "--iprange"):
             ip_range = arg
-    if(outputfile != '' or ip_range != ''):
+    if(outputfile != '' and ip_range != ''):
         execute_validdatageneration(outputfile, ip_range)
         print('JEEE')
     else:
