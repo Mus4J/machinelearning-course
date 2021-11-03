@@ -12,7 +12,7 @@ import jsonlines
 
 def generate_valid_data_IPRANGE(file, iprange):
     for x in range(7500):
-        text = str(x) + ' | ' + str(random_date().strftime("%Y%m%d%H%M%S")) + ' | ' + random_ip_INRANGE(iprange) + \
+        text = str(x) + ' | ' + str(random_date().strftime("%Y.%m.%d - %H:%M:%S")) + ' | ' + random_ip_INRANGE(iprange) + \
             ' | 10.0.0.1 | HTTP | ' + str(random.randrange(
                 1000, 2000)) + ' | POST /api/example/login/?venue=dms HTTP/1.1 (application/json)\n'
         file.write(text)
@@ -24,7 +24,7 @@ def generate_valid_data_IPRANGE(file, iprange):
 def generate_valid_data_WIDEIP(file):
     text = ''
     for x in range(2500):
-        text = str(x) + ' | ' + str(random_date().strftime("%Y%m%d%H%M%S")) + ' | ' + random_ip_NOTINRANGE() + \
+        text = str(x) + ' | ' + str(random_date().strftime("%Y.%m.%d - %H:%M:%S")) + ' | ' + random_ip_NOTINRANGE() + \
             ' | 10.0.0.1 | HTTP | ' + str(random.randrange(
                 1000, 2000)) + ' | POST /api/example/login/?venue=dms HTTP/1.1 (application/json)\n'
         file.write(text)
@@ -62,7 +62,7 @@ def generate_application_json_data(index, bool):
     data = {}
     data['JavaScript Object Notation: application/json'] = []
     data['JavaScript Object Notation: application/json'].append({
-        'Object': {
+        'Object ' + str(index): {
             'Member Key:': {
                 'email': {
                     'String': email,
@@ -77,6 +77,7 @@ def generate_application_json_data(index, bool):
     })
     with jsonlines.open('data.json', 'a') as json_file:
         json_file.write(data)
+        json_file.close()
 
     # Json tiedoston lukeminen:
     # with jsonlines.open('data.json') as json_file:
@@ -156,6 +157,8 @@ def main(argv):
             outputfile = arg
         elif opt in ("-ip", "--iprange"):
             ip_range = arg
+    print(outputfile)
+    print(ip_range)
     if(outputfile != '' and ip_range != ''):
         execute_validdatageneration(outputfile, ip_range)
         print('JEEE')
