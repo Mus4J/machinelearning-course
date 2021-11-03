@@ -20,6 +20,11 @@ https://www.python.org/downloads/
 pip install jsonlines
 ```
 
+### jsonrepair
+```
+npm install jsnorepair
+```
+
 
 ## Usage
 
