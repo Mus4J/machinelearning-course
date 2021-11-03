@@ -1,6 +1,10 @@
 # ignore README.md
 README.md
+.md
 
 # ignore generated files
 *.json
 *.txt
+
+# ignore node_modules
+/node_modules
