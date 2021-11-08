@@ -20,9 +20,9 @@ https://www.python.org/downloads/
 pip install jsonlines
 ```
 
-### jsonrepair
+### SciPy, Matplotlib, IPython, Jupyter, Pandas, Sympy, Nose & Numpy
 ```
-npm install jsnorepair
+python -m pip install --user numpy scipy matplotlib ipython jupyter pandas sympy nose
 ```
 
 
