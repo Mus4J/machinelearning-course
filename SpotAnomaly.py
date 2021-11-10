@@ -36,7 +36,6 @@ def calculate_ipfragment(country):
 
 
 def get_ip_data(ip):
-    # print(ip_fragment)
     # oikealla datalla käytetäisiin IPinfo kirjastoa - https://github.com/ipinfo/python
     ip_data = []
 
@@ -239,7 +238,7 @@ def processLine(line_data):
             else:
                 data_set_fragments['method'] = 1.0
     data_set_fragments['average'] = getAverage(data_set_fragments)
-    # print(line_data[2], data_set_fragments['average'])
+
     ip_map[line_data[2]] = line_data[1]
     return data_set_fragments
 
@@ -270,8 +269,7 @@ def groupData(all_data):
         else:
             groups[str(data['Id'])] = []
             groups[data['Id']].append(data)
-    # print(groups)
-    # groups <-- grouped by ip
+
     for key in groups:
         if(len(groups[key]) > 1):
             result_of_time_occurance = createListOfDatas(groups[key])
@@ -282,8 +280,8 @@ def groupData(all_data):
             for l, timeKey in enumerate(time_keys):
                 groups[key][int(result_of_time_occurance[timeKey])
                             ]['Time_anomaly'] = timeKey.split(':')[0]
-                print(groups[key][l])
-
+        else:
+            groups[key][0]['Time_anomaly'] = 'False'
 
 # Calulates weather difference betweem date times is too small (less than 20 sec) and it occures at least 4 times in order
 # TODO Pitäisi toimia, mutta tarvitsee varmistaa anomoaliaa sisältävällä datalla
@@ -365,17 +363,32 @@ def calculatePoinst(data_file, json_file):
                 processed_data[x]['logIn'] = processJsonLine(
                     json_line_data, processed_data[x])
 
-    # processed_data <-- TÄSSÄ ON NYT PROSESSOITU DATA PISTEYTYKSINEEN TODO: JATKUU TÄSTÄ
-    # Kutsutaan functiota, jossa data gorupataan ip:n mukaa
-    # Tarkkaillaan ryhmän sisällä olevien aikojen jaksollisuuttaa jne. --> Time-Series(Luento5)
-    # print(processed_data[0])
-
     groupData(processed_data)
+
+
+# Generates outputfile of data
+# TODO
+
+def generateOutputFile():
+    # print(groups)
+    print('TODO')
+
+
+# Draws data with plot
+# TODO
+
+
+def drawResult():
+    # print(groups)
+    print('TODO')
+
 # Execute script and spot anomaly
 
 
 def execute(dataFile, jsonFile):
     calculatePoinst(dataFile, jsonFile)
+    generateOutputFile()
+    drawResult()
 
 # Entry method to check arguments
 
@@ -400,8 +413,7 @@ def main(argv):
             dataFile = arg
         elif opt in ("-j", "--jsonFile"):
             jsonFile = arg
-    print(dataFile)
-    print(jsonFile)
+
     if(dataFile != '' and jsonFile != ''):
         execute(dataFile, jsonFile)
     else:
@@ -418,5 +430,4 @@ def main(argv):
     # blacklist_ips
     # whitelist_ips
 if __name__ == "__main__":
-    # print(len(sys.argv))
     main(sys.argv[1:])
