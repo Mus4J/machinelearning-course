@@ -53,11 +53,13 @@ def random_date():
 
 
 def generate_application_json_data(index, bool):
+    login_data = generate_valid_email()
     if bool:
-        email = generate_valid_email()
+        email = login_data[0]
+        password = login_data[1]
     else:
-        email = generate_random_string() + '@gmail.com'
-    password = generate_random_string()
+        email = login_data[0]
+        password = generate_random_string()
 
     data = {}
     data['JavaScript Object Notation: application/json'] = []
@@ -85,8 +87,10 @@ def generate_application_json_data(index, bool):
     #       print(obj)
 
 
-email = ['aku.ankka@comppanyx.fi', 'minni.hiiri@comppanyx.fi', 'roope.ankka@comppanyx.fi', 'hessu.hopo@comppanyx.fi', 'milla.magia@comppanyx.fi',
-         'tupu.ankka@comppanyx.fi', 'lupu.ankka@comppanyx.fi', 'hupu.ankka@comppanyx.fi', 'it@comppanyx.fi', 'support@comppanyx.fi', 'asiakaspalvelu@comppanyx.fi']
+emails = ['aku.ankka@comppanyx.fi', 'minni.hiiri@comppanyx.fi', 'roope.ankka@comppanyx.fi', 'hessu.hopo@comppanyx.fi', 'milla.magia@comppanyx.fi',
+          'tupu.ankka@comppanyx.fi', 'lupu.ankka@comppanyx.fi', 'hupu.ankka@comppanyx.fi', 'it@comppanyx.fi', 'support@comppanyx.fi', 'asiakaspalvelu@comppanyx.fi']
+passwords = {'aku.ankka@comppanyx.fi': 'aku', 'minni.hiiri@comppanyx.fi': 'minni', 'roope.ankka@comppanyx.fi': 'roope', 'hessu.hopo@comppanyx.fi': 'hessu', 'milla.magia@comppanyx.fi': 'milla',
+             'tupu.ankka@comppanyx.fi': 'tupu', 'lupu.ankka@comppanyx.fi': 'lupu', 'hupu.ankka@comppanyx.fi': 'hupu', 'it@comppanyx.fi': 'it', 'support@comppanyx.fi': 'support', 'asiakaspalvelu@comppanyx.fi': 'aspa'}
 letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
            'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'x', 'y', 'z']
 
@@ -94,7 +98,10 @@ letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
 
 
 def generate_valid_email():
-    return email[randrange(11)]
+    data = []
+    data.append(emails[randrange(11)])
+    data.append(passwords[data[0]])
+    return data
     # kävisikö myös return random.sample(email, 1)[0]
 
 
@@ -142,11 +149,11 @@ def main(argv):
     print(len(argv))
     try:
         opts, args = getopt.getopt(
-            argv, "h:m:o:ip:", ["help=", "method=", "ofile=", "iprange="])
+            argv, "h:m:o:i:", ["help=", "method=", "ofile=", "iprange="])
     except getopt.GetoptError:
         print('Message: Error')
         print()
-        print('     -o  | --ofile       Name of file where data will be generated\n     -ip | --iprange     Range of ips valid data will be generated along side of randomised ips data')
+        print('     -o  | --ofile       Name of file where data will be generated\n     -i | --iprange     Range of ips valid data will be generated along side of randomised ips data')
         print(
             "     -m  | --method      Method to be used. Different options are 'base' and 'anomalydata'. If not selected script generates base data. -m['base'/'anomalydata'] | --method['base'/'anomalydata']")
         print()
@@ -155,17 +162,16 @@ def main(argv):
     for opt, arg in opts:
         if opt in ("-o", "--ofile"):
             outputfile = arg
-        elif opt in ("-ip", "--iprange"):
+        elif opt in ("-i", "--iprange"):
             ip_range = arg
     print(outputfile)
     print(ip_range)
     if(outputfile != '' and ip_range != ''):
         execute_validdatageneration(outputfile, ip_range)
-        print('JEEE')
     else:
         print('Message: Argument missing.')
         print()
-        print('     -o  | --ofile       Name of file where data will be generated\n     -ip | --iprange     Range of ips valid data will be generated along side of randomised ips data')
+        print('     -o  | --ofile       Name of file where data will be generated\n     -i | --iprange     Range of ips valid data will be generated along side of randomised ips data')
         print(
             "     -m  | --method      Method to be used. Different options are 'base' and 'anomalydata'. If not selected script generates base data. -m['base'/'anomalydata'] | --method['base'/'anomalydata']")
         print()

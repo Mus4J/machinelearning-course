@@ -1,16 +1,19 @@
 import numpy
-#import SciPy
-#import joblib
-#import threadpoolctl
-#import scikit
+# import SciPy
+# import joblib
+# import threadpoolctl
+# import scikit
 import sys
 import getopt
 import numpy as np
-from datetime import datetime
+from datetime import datetime, time
 import statistics
+import re
+import pandas as pd
+from collections import defaultdict
 
 ip_map = {}  # list wit ip as key and whole line as data
-#matrix = np.array()
+# matrix = np.array()
 ip_range = '198.168.0.'
 black_list = ['203', '254', '225']
 ip_fragment = [0.0, 1.0, 0.700000, 0.300000,
@@ -28,47 +31,68 @@ def calculate_ipfragment(country):
         ip_fragment[index] += 0.000001
 
 # Palauttaa ko. ip:n pisteet. Jos kuuluu rangeen niin palautetaan 1 ja jos on blacklist niin palautetaan 0. Muuten palttaa ip_fragment kertoimen
+# Korvataan kirjastolla, joka osaa katso mihin ryhmään kuuluu ja laskee pisteet ryhmän esiintyvyyden mukaan.
+# Block_list ryhmällä ja ip_range ryhmällä ei muuttuva arvo
 
 
 def get_ip_data(ip):
     # print(ip_fragment)
     # oikealla datalla käytetäisiin IPinfo kirjastoa - https://github.com/ipinfo/python
+    ip_data = []
 
     if(ip.rsplit('.', 1)[0] + '.' == ip_range):
-        return ip_fragment[1]  # company ip
+        ip_data.append('C')
+        ip_data.append(ip_fragment[1])
+        return ip_data  # company ip
 
     for black_list_ip in black_list:
         if(black_list_ip == ip.split('.')[0]):
-            return ip_fragment[0]
+            ip_data.append('B')
+            ip_data.append(ip_fragment[0])
+            return ip_data
 
     current_ip = int(ip.split('.')[0])
 
     if(current_ip >= 1 and current_ip <= 30):
         calculate_ipfragment(0)
-        return ip_fragment[2]  # australia
+        ip_data.append('AUS')
+        ip_data.append(ip_fragment[2])
+        return ip_data  # australia
 
     elif(current_ip >= 31 and current_ip <= 60):
         calculate_ipfragment(1)
-        return ip_fragment[3]  # russia
+        ip_data.append('RUS')
+        ip_data.append(ip_fragment[3])
+        return ip_data  # russia
 
     elif(current_ip >= 61 and current_ip <= 90):
         calculate_ipfragment(2)
-        return ip_fragment[4]  # pakistan
+        ip_data.append('PAK')
+        ip_data.append(ip_fragment[4])
+        return ip_data  # pakistan
 
     elif(current_ip >= 91 and current_ip <= 120):
         calculate_ipfragment(3)
-        return ip_fragment[5]  # intia
+        ip_data.append('INT')
+        ip_data.append(ip_fragment[5])
+        return ip_data  # intia
 
     elif(current_ip >= 121 and current_ip <= 150):
         calculate_ipfragment(4)
-        return ip_fragment[6]  # israel
+        ip_data.append('ISR')
+        ip_data.append(ip_fragment[6])
+        return ip_data  # israel
 
     elif(current_ip >= 151 and current_ip <= 180):
         calculate_ipfragment(5)
-        return ip_fragment[7]  # china
+        ip_data.append('CHI')
+        ip_data.append(ip_fragment[7])
+        return ip_data  # china
     else:
         calculate_ipfragment(6)
-        return ip_fragment[8]  # suomi
+        ip_data.append('SUO')
+        ip_data.append(ip_fragment[8])
+        return ip_data  # suomi
 
 
 # Katsotaan onko aika työajan sisällä
@@ -122,7 +146,14 @@ def business_hours(time):
 def getAverage(data_set_fragments):
     list_of_numbers = []
 
-    for key in data_set_fragments:
+    for x, key in enumerate(data_set_fragments):
+        if(x == 0 or x == 1):
+            continue
+        elif(x == 3):
+            if(data_set_fragments[key] == 'B'):
+                return 0
+            else:
+                continue
         list_of_numbers.append(int(data_set_fragments[key]))
 
     size_points = list_of_numbers[2]
@@ -138,18 +169,61 @@ def getAverage(data_set_fragments):
 
     return np.average(list_of_numbers, weights=weights_for)
 
-    # Käy läpi ja prosessoi kunkin rivin
+
+# List of all the login information in the company
+login_information = {'aku.ankka@comppanyx.fi': 'aku', 'minni.hiiri@comppanyx.fi': 'minni', 'roope.ankka@comppanyx.fi': 'roope', 'hessu.hopo@comppanyx.fi': 'hessu', 'milla.magia@comppanyx.fi': 'milla',
+                     'tupu.ankka@comppanyx.fi': 'tupu', 'lupu.ankka@comppanyx.fi': 'lupu', 'hupu.ankka@comppanyx.fi': 'hupu', 'it@comppanyx.fi': 'it', 'support@comppanyx.fi': 'support', 'asiakaspalvelu@comppanyx.fi': 'aspa'}
+
+
+# Goes trough login information and which ip/country they are done / attempted
+
+def processJsonLine(line_data, processed_data):
+    if(processed_data['Country_flag'] == 'C'):
+        # onnistunut oikea kirjautuminen yrityksensisältä
+        if(login_information[line_data[1]] == line_data[3]):
+            return 1
+        else:   # väärä kirjautuminen yrityksen sisältä
+            return 0.8
+    elif(processed_data['Country_flag'] == 'SUO'):
+        # onnistunut oikea kirjautuminen Suomesta
+        if(login_information[line_data[1]] == line_data[3]):
+            return 0.8
+        else:   # väärä kirjautuminen Suomesta
+            return 0.6
+    else:
+        if(processed_data['ip'] < 0):
+            # onnistunut oikea kirjautuminen huonosta ip:stä
+            if(login_information[line_data[1]] == line_data[3]):
+                return 0
+            else:   # väärä kirjautuminen huonosta ip:stä
+                return 0.1
+        else:
+            # onnistunut oikea kirjautuminen maailmalta
+            if(login_information[line_data[1]] == line_data[3]):
+                if(processed_data['ip'] < 0.5):
+                    return 0
+                else:
+                    return processed_data['ip'] * 0.5
+            else:   # väärä kirjautuminen maailmalta
+                return processed_data['ip'] * processed_data['ip']
+
+
+# Käy läpi ja prosessoi kunkin rivin
 
 
 def processLine(line_data):
-    # print(line_data)
     data_set_fragments = {}
     for index, data in enumerate(line_data):
+        data_set_fragments['Id'] = line_data[2]
         if(index == 1):  # time
-            data_set_fragments['time'] = business_hours(data)
+            data_set_fragments['time'] = data.replace(' - ', '-')
+            data_set_fragments['time_points'] = business_hours(data)
 
         elif(index == 2):  # ip
-            data_set_fragments['ip'] = get_ip_data(data)
+            ip_data = []
+            ip_data = get_ip_data(data)
+            data_set_fragments['Country_flag'] = ip_data[0]
+            data_set_fragments['ip'] = ip_data[1]
 
         elif(index == 5):  # size
             if(int(data) > 3000 and int(data) < 5000):
@@ -165,20 +239,138 @@ def processLine(line_data):
             else:
                 data_set_fragments['method'] = 1.0
     data_set_fragments['average'] = getAverage(data_set_fragments)
-    print(line_data[2], data_set_fragments['average'])
+    # print(line_data[2], data_set_fragments['average'])
     ip_map[line_data[2]] = line_data[1]
     return data_set_fragments
 
 
+# Formats JSON data into the more readable and usable format
+# Jos olisi oikea/oikein formatoitu JSON file voitaisiin tehdä tämä eri tavalla
+
+def getJsonData(line):
+    tmp = re.sub(
+        '{"JavaScript Object Notation: application/json": [{"Object \\[0-9]*": {"Member Key:": {', '', line)
+    tmp = re.sub('": {"String": "', '|', tmp)
+    tmp = tmp.replace('}', '').replace(']', '')
+    tmp = re.sub('", "Key": "password"', '', tmp)
+    tmp = re.sub('", "Key": "email", "', '|', tmp)
+    tmp = tmp.replace('"', '')
+    tmp = tmp.replace('\n', '')
+    return tmp.split('|')
+
+
+# Groups data by IP-Addresses
+
+def groupData(all_data):
+    result_of_time_occurance = {}
+
+    for x, data in enumerate(all_data):
+        if str(data['Id']) in groups:
+            groups[data['Id']].append(data)
+        else:
+            groups[str(data['Id'])] = []
+            groups[data['Id']].append(data)
+    # print(groups)
+    # groups <-- grouped by ip
+    for key in groups:
+        if(len(groups[key]) > 1):
+            result_of_time_occurance = createListOfDatas(groups[key])
+
+            time_keys = result_of_time_occurance.keys()
+
+            # TODO Pitäisi toimia, mutta tarvitsee varmistaa anomoaliaa sisältävällä datalla
+            for l, timeKey in enumerate(time_keys):
+                groups[key][int(result_of_time_occurance[timeKey])
+                            ]['Time_anomaly'] = timeKey.split(':')[0]
+                print(groups[key][l])
+
+
+# Calulates weather difference betweem date times is too small (less than 20 sec) and it occures at least 4 times in order
+# TODO Pitäisi toimia, mutta tarvitsee varmistaa anomoaliaa sisältävällä datalla
+
+
+def calculateTimeOccurance(dates):
+    list_of_ranges = []
+
+    for x, date in enumerate(range(len(dates)-1)):
+        val = dates[x+1] - dates[x]
+        list_of_ranges.append(val)
+
+    counter = 0
+    start_index = 0
+    anomaly_indexer = 0
+    normal_indexer = 0
+    result = {}
+
+    for y, td in enumerate(range(len(list_of_ranges)-1)):
+        days = list_of_ranges[y].days
+        hours, remainder = divmod(list_of_ranges[y].seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        # days, hours, minutes, seconds
+        if(days == 0 and hours == 0 and minutes == 0 and seconds >= 10):
+            if(counter == 0):
+                start_index = y
+            counter += 1
+        else:
+            if(counter >= 3):
+                anomaly_indexer += 1
+            counter = 0
+
+            result['False: '+str(normal_indexer)] = str(y)
+            normal_indexer += 1
+
+        if(counter >= 3):
+            result['True: '+str(anomaly_indexer)
+                   ] = str(start_index) + '-' + str(y)
+    return result
+
+
+# Creates list of all the dates in a data group
+# TODO Pitäisi toimia, mutta tarvitsee varmistaa anomoaliaa sisältävällä datalla
+
+def createListOfDatas(data_group):
+    list_of_dates = []
+
+    for x, data in enumerate(data_group):
+        tmp = data['time'].split('-')
+        date = tmp[0].split('.')
+        time = tmp[1].split(':')
+
+        date_time = datetime(int(date[0]), int(date[1]), int(
+            date[2]), int(time[0]), int(time[1]), int(time[2]))
+
+        list_of_dates.append(date_time)
+        list_of_dates = sorted(list_of_dates)
+
+    return calculateTimeOccurance(list_of_dates)
+
+
 def calculatePoinst(data_file, json_file):
     processed_data = []  # prosessoitu data pisteytyksineen
+
     with open(data_file, 'r') as dataFile:
         for x in dataFile:
             line = x.strip()
             line_data = line.split(' | ')
             processed_data.append(processLine(line_data))
-    print(processed_data)
 
+    with open(json_file, 'r') as jsonFile:
+        for x, y in enumerate(jsonFile):
+            json_line_data = getJsonData(y)
+            if(x >= len(processed_data)):
+                print(
+                    'ERROR: There is more data in JSON file than in processed_data file')
+                break
+            elif(x < len(processed_data)):
+                processed_data[x]['logIn'] = processJsonLine(
+                    json_line_data, processed_data[x])
+
+    # processed_data <-- TÄSSÄ ON NYT PROSESSOITU DATA PISTEYTYKSINEEN TODO: JATKUU TÄSTÄ
+    # Kutsutaan functiota, jossa data gorupataan ip:n mukaa
+    # Tarkkaillaan ryhmän sisällä olevien aikojen jaksollisuuttaa jne. --> Time-Series(Luento5)
+    # print(processed_data[0])
+
+    groupData(processed_data)
 # Execute script and spot anomaly
 
 
@@ -194,28 +386,29 @@ def main(argv):
 
     try:
         opts, args = getopt.getopt(
-            argv, "h:data:json", ["help=", "dataFile=", "jsonFile="])
+            argv, "h:d:j:", ["help=", "dataFile=", "jsonFile="])
     except getopt.GetoptError:
         print('Message: Error')
         print()
-        print('     -data  | --dataFile       Name of file where data will be get')
-        print('     -json  | --jsonFile       Name of file where json data will be get')
+        print('     -d     | --dataFile       Name of file where data will be get')
+        print('     -j     | --jsonFile       Name of file where json data will be get')
         print()
         print('Example line: SpotAnomaly.py -data <dataFile> -json <jsonFile>')
         sys.exit(2)
     for opt, arg in opts:
-        if opt in ("-data", "--dataFile"):
+        if opt in ("-d", "--dataFile"):
             dataFile = arg
-        elif opt in ("-json", "--jsonFile"):
+        elif opt in ("-j", "--jsonFile"):
             jsonFile = arg
-
+    print(dataFile)
+    print(jsonFile)
     if(dataFile != '' and jsonFile != ''):
         execute(dataFile, jsonFile)
     else:
         print('Message: Argument missing.')
         print()
-        print('     -data  | --dataFile       Name of file where data will be get')
-        print('     -json  | --jsonFile       Name of file where json data will be get')
+        print('     -d     | --dataFile       Name of file where data will be get')
+        print('     -j     | --jsonFile       Name of file where json data will be get')
         print()
         print('Example line: SpotAnomaly.py -i <file>')
         sys.exit(2)
