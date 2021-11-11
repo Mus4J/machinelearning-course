@@ -122,7 +122,20 @@ python3 DataGeneration.py -m 'base' -o 'example.txt' -i '192.168.0.'
 
 <b>Example line for anomaly data generation:</b>
 ```
-python3 DataGeneration.py -m 'anomalydata' -o 'example.txt' -i '192.168.0.'
+python3 DataGeneration.py -m 'anomalydata' -o 'example.txt'
+```
+
+<b>NOTE! Anomalydata generation dosent need ip range</b>
+
+#### Optimal usage of the script:
+
+First generate file with base data:
+```
+python3 DataGeneration.py -m 'base' -o 'example.txt' -i '192.168.0.'
+```
+Then generate anomaly data into the same file
+```
+python3 DataGeneration.py -m 'anomalydata' -o 'example.txt'
 ```
 
 Output will be data.json file which holds login data and .txt file which hold's in request data.
