@@ -103,27 +103,52 @@ Example of the output data:
 
 ### Usage
 
-#### Generate data
 
 You can generate data by running the script on commandline. Script takes 2 to 3 parameters. 
 
 <b>Required:</b> Name of file as String where data will be generated
-  -o['filename'] | --ofile['filename'] 
+  -o['testifile.txt'] | --ofile['testifile.txt'] 
   
 <b>Required:</b> Range of ips valid data will be generated along side of randomised ips data. Range of ip means first 3 address spaces between 0 and 255
-  -ip[192.168.0.] | --iprange[192.168.0.]
+  -i[192.168.0.] | --iprange[192.168.0.]
   
 <b>Optional:</b> Method to be used. Different options are "base" and "anomalydata"'. If not selected script generates base data. 
   -m['base'/'anomalydata'] | --method['base'/'anomalydata']
 
 <b>Example line for valid data generation:</b>
 ```
-python3 DataGeneration.py -m 'base' -o 'example.txt' -ip '192.168.0.'
+python3 DataGeneration.py -m 'base' -o 'example.txt' -i '192.168.0.'
 ```
 
 <b>Example line for anomaly data generation:</b>
 ```
-python3 DataGeneration.py -m 'anomalydata' -o 'example.txt' -ip '192.168.0.'
+python3 DataGeneration.py -m 'anomalydata' -o 'example.txt' -i '192.168.0.'
 ```
 
 Output will be data.json file which holds login data and .txt file which hold's in request data.
+
+## Spot Anomaly
+
+SpotAnomaly script is used to process the files containing data, formatting data into the more machine readable format and plotting data into the figure.
+
+### How does it work
+
+
+
+### Usage
+
+SpotAnomaly script takes 2 arguments and you can run it from the commandline.
+
+<b>Required:</b> Name of file as String where request data is
+  -d['testifile.txt'] | --dataFile['testifile.txt'] 
+  
+<b>Required:</b> Name of file as String where login data is
+  -j[testi.json] | --jsonFile[testi.json]
+
+<b>Example line for valid usage:</b>
+```
+python3 SpotAnomaly.py -d 'testi.txt' -j 'testi.json'
+```
+
+
+Output will generate result.txt file containing all the processed data on inlines and figure.
