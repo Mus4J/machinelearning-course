@@ -11,11 +11,12 @@ import statistics
 import re
 import pandas as pd
 from collections import defaultdict
+import json
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
 
 ip_map = {}  # list wit ip as key and whole line as data
 # matrix = np.array()
-ip_range = '198.168.0.'
-black_list = ['203', '254', '225']
 ip_fragment = [0.0, 1.0, 0.700000, 0.300000,
                0.500000, 0.700000, 0.300000, 0.300000, 0.900000]
 groups = {}
@@ -32,23 +33,24 @@ def calculate_ipfragment(country):
 
 # Palauttaa ko. ip:n pisteet. Jos kuuluu rangeen niin palautetaan 1 ja jos on blacklist niin palautetaan 0. Muuten palttaa ip_fragment kertoimen
 # Korvataan kirjastolla, joka osaa katso mihin ryhmään kuuluu ja laskee pisteet ryhmän esiintyvyyden mukaan.
-# Block_list ryhmällä ja ip_range ryhmällä ei muuttuva arvo
+# Block_list ryhmällä ei muuttuva arvo
 
 
-def get_ip_data(ip):
+def get_ip_data(ip, ipRange, blackList):
     # oikealla datalla käytetäisiin IPinfo kirjastoa - https://github.com/ipinfo/python
     ip_data = []
 
-    if(ip.rsplit('.', 1)[0] + '.' == ip_range):
+    if(ip.rsplit('.', 1)[0] + '.' == ipRange):
         ip_data.append('C')
         ip_data.append(ip_fragment[1])
         return ip_data  # company ip
 
-    for black_list_ip in black_list:
-        if(black_list_ip == ip.split('.')[0]):
-            ip_data.append('B')
-            ip_data.append(ip_fragment[0])
-            return ip_data
+    if(len(blackList) > 0):
+        for black_list_ip in blackList:
+            if(black_list_ip == ip.split('.')[0]):
+                ip_data.append('B')
+                ip_data.append(ip_fragment[0])
+                return ip_data
 
     current_ip = int(ip.split('.')[0])
 
@@ -156,15 +158,19 @@ def getAverage(data_set_fragments):
         list_of_numbers.append(int(data_set_fragments[key]))
 
     size_points = list_of_numbers[2]
+    if(list_of_numbers[3] != 1):
+        method_points = 4
+    else:
+        method_points = 1
     if(size_points != 1):
         if(size_points >= 0.7 and size_points < 1):
-            weights_for = [2, 1, 2, 1]
+            weights_for = [2, 1, 2, method_points]
         elif(size_points > 0.4 and size_points < 0.7):
-            weights_for = [2, 1, 3, 1]
+            weights_for = [2, 1, 3, method_points]
         elif(size_points < 0.4):
-            weights_for = [2, 1, 4, 1]
+            weights_for = [2, 1, 4, method_points]
     else:
-        weights_for = [2, 1, 1, 1]
+        weights_for = [2, 1, 1, method_points]
 
     return np.average(list_of_numbers, weights=weights_for)
 
@@ -210,7 +216,7 @@ def processJsonLine(line_data, processed_data):
 # Käy läpi ja prosessoi kunkin rivin
 
 
-def processLine(line_data):
+def processLine(line_data, ipRange, blackList):
     data_set_fragments = {}
     for index, data in enumerate(line_data):
         data_set_fragments['Id'] = line_data[2]
@@ -220,7 +226,7 @@ def processLine(line_data):
 
         elif(index == 2):  # ip
             ip_data = []
-            ip_data = get_ip_data(data)
+            ip_data = get_ip_data(data, ipRange, blackList)
             data_set_fragments['Country_flag'] = ip_data[0]
             data_set_fragments['ip'] = ip_data[1]
 
@@ -343,14 +349,14 @@ def createListOfDatas(data_group):
     return calculateTimeOccurance(list_of_dates)
 
 
-def calculatePoinst(data_file, json_file):
+def calculatePoinst(data_file, json_file, ipRange, blackList):
     processed_data = []  # prosessoitu data pisteytyksineen
 
     with open(data_file, 'r') as dataFile:
         for x in dataFile:
             line = x.strip()
             line_data = line.split(' | ')
-            processed_data.append(processLine(line_data))
+            processed_data.append(processLine(line_data, ipRange, blackList))
 
     with open(json_file, 'r') as jsonFile:
         for x, y in enumerate(jsonFile):
@@ -367,28 +373,76 @@ def calculatePoinst(data_file, json_file):
 
 
 # Generates outputfile of data
-# TODO
 
 def generateOutputFile():
-    # print(groups)
-    print('TODO')
+    with open('result.txt', 'w') as outfile:
+        json.dump(groups, outfile, indent=4)
 
 
 # Draws data with plot
 # TODO
 
 
-def drawResult():
-    # print(groups)
-    print('TODO')
+def drawResult(ipRange):
+    x = []
+    y = []
+    z = []
+    xl = []
+    yl = []
+    zl = []
+    xs = []
+    ys = []
+    zs = []
+
+    ip_range = ipRange.split('.')
+
+    fig = plt.figure(figsize=(10, 10))
+
+    ax = plt.axes(projection='3d')
+    ax.grid(False)
+    for key in groups:
+        for data in groups[key]:
+            feature_points = 0
+            tmp = data['Id'].split('.')
+            if not 'Time_anomaly' in data:
+                points_list = [data['average'], data['logIn']]
+                feature_points = np.average(points_list, weights=[3, 1])
+            else:
+                if(data['Time_anomaly'] == 'True'):
+                    xs.append(int(tmp[0]))
+                    ys.append(int(tmp[1]))
+                    zs.append(int(tmp[2]) + int(tmp[3]))
+                else:
+                    points_list = [data['average'], data['logIn']]
+                    feature_points = np.average(points_list, weights=[3, 1])
+            if(feature_points < 0.3):
+                xs.append(int(tmp[0]))
+                ys.append(int(tmp[1]))
+                zs.append(int(tmp[2]) + int(tmp[3]))
+            else:
+                if(ipRange in data['Id']):
+                    xl.append(int(tmp[0]))
+                    yl.append(int(tmp[1]))
+                    zl.append(int(tmp[2]) + int(tmp[3]))
+                else:
+                    x.append(int(tmp[0]))
+                    y.append(int(tmp[1]))
+                    z.append(int(tmp[2]) + int(tmp[3]))
+
+    ax.scatter3D(x, y, z, s=5, marker='o', c='green')
+    ax.scatter3D(xl, yl, zl, s=5, marker='o', c='blue')
+    ax.scatter3D(xs, ys, zs, s=20, marker='*', c='red')
+
+    plt.show()
+
 
 # Execute script and spot anomaly
 
 
-def execute(dataFile, jsonFile):
-    calculatePoinst(dataFile, jsonFile)
-    generateOutputFile()
-    drawResult()
+def execute(dataFile, jsonFile, ipRange, blackList):
+    calculatePoinst(dataFile, jsonFile, ipRange, blackList)
+    # generateOutputFile()
+    drawResult(ipRange)
 
 # Entry method to check arguments
 
@@ -396,15 +450,19 @@ def execute(dataFile, jsonFile):
 def main(argv):
     dataFile = ''
     jsonFile = ''
+    ipRange = ''
+    blackList = []
 
     try:
         opts, args = getopt.getopt(
-            argv, "h:d:j:", ["help=", "dataFile=", "jsonFile="])
+            argv, "h:d:j:i:b:", ["help=", "dataFile=", "jsonFile=", "iprange=", "blacklist="])
     except getopt.GetoptError:
         print('Message: Error')
         print()
         print('     -d     | --dataFile       Name of file where data will be get')
         print('     -j     | --jsonFile       Name of file where json data will be get')
+        print('     -i     | --iprange        Ip range used to terminate company wide ip range')
+        print('     -b     | --blacklist      Blacklisted ips seperated with semicolon(;)')
         print()
         print('Example line: SpotAnomaly.py -data <dataFile> -json <jsonFile>')
         sys.exit(2)
@@ -413,14 +471,59 @@ def main(argv):
             dataFile = arg
         elif opt in ("-j", "--jsonFile"):
             jsonFile = arg
-
-    if(dataFile != '' and jsonFile != ''):
-        execute(dataFile, jsonFile)
+        elif opt in ("-i", "--iprange"):
+            if(len(arg) < 10):
+                print('Ip range length too small')
+            elif(len(arg) > 10):
+                print('Ip range length too big')
+            else:
+                ipRange = arg
+        elif opt in ("-b", "--blacklist"):
+            if not (any(i.isdigit() for i in arg)):
+                print('Message: Blacklist can only contain digits')
+                print()
+                print(
+                    '     -d     | --dataFile       Name of file where data will be get')
+                print(
+                    '     -j     | --jsonFile       Name of file where json data will be get')
+                print(
+                    '     -i     | --iprange        Ip range used to terminate company wide ip range')
+                print(
+                    '     -b     | --blacklist      Blacklisted ips seperated with semicolon(;)')
+                print()
+                print('Example line: SpotAnomaly.py -data <dataFile> -json <jsonFile>')
+                sys.exit(2)
+            else:
+                if ';' in arg:
+                    blackList = arg.split(';')
+                elif(len(arg) > 0):
+                    blackList.append(arg)
+                for str in blackList:
+                    if(len(str) > 3):
+                        print(
+                            'Message: Some ip or ips in the blacklist are longer than 3 digits')
+                        print()
+                        print(
+                            '     -d     | --dataFile       Name of file where data will be get')
+                        print(
+                            '     -j     | --jsonFile       Name of file where json data will be get')
+                        print(
+                            '     -i     | --iprange        Ip range used to terminate company wide ip range')
+                        print(
+                            '     -b     | --blacklist      Blacklisted ips seperated with semicolon(;)')
+                        print()
+                        print(
+                            'Example line: SpotAnomaly.py -data <dataFile> -json <jsonFile>')
+                        sys.exit(2)
+    if(dataFile != '' and jsonFile != '' and ipRange != ''):
+        execute(dataFile, jsonFile, ipRange, blackList)
     else:
         print('Message: Argument missing.')
         print()
         print('     -d     | --dataFile       Name of file where data will be get')
         print('     -j     | --jsonFile       Name of file where json data will be get')
+        print('     -i     | --iprange        Ip range used to terminate company wide ip range')
+        print('     -b     | --blacklist      Blacklisted ips seperated with semicolon(;)')
         print()
         print('Example line: SpotAnomaly.py -i <file>')
         sys.exit(2)
@@ -428,6 +531,5 @@ def main(argv):
 
 # argumentit:
     # blacklist_ips
-    # whitelist_ips
 if __name__ == "__main__":
     main(sys.argv[1:])
