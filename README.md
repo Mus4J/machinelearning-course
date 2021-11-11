@@ -261,3 +261,15 @@ Example of data in the outputfile:
 
 '192.168.0.229':[{'Id': '192.168.0.229', 'time': '2021.09.08-09:08:34', 'time_points': 1.0, 'Country_flag': 'SUO', 'ip': 0.9, 'size': 1.0, 'method': 1.0, 'average': 0.8, 'logIn': 0.8, 'Time_anomaly': 'False'}, {'Id': '192.168.0.229', 'time': '2021.10.05-06:48:34', 'time_points': 0.5, 'Country_flag': 'SUO', 'ip': 0.9, 'size': 1.0, 'method': 1.0, 'average': 0.4, 'logIn': 0.8, 'Time_anomaly': 'False'}, {'Id': '192.168.0.229', 'time': '2021.05.11-20:24:37', 'time_points': 0.55, 'Country_flag': 'SUO', 'ip': 0.9, 'size': 1.0, 'method': 1.0, 'average': 0.4, 'logIn': 0.8, 'Time_anomaly': 'False'}, {'Id': '192.168.0.229', 'time': '2021.06.07-08:00:11', 'time_points': 1.0, 'Country_flag': 'SUO', 'ip': 0.9, 'size': 1.0, 'method': 1.0, 'average': 0.8, 'logIn': 0.8, 'Time_anomaly': 'False'}, {'Id': '192.168.0.229', 'time': '2021.07.07-00:41:46', 'time_points': 0.0, 'Country_flag': 'SUO', 'ip': 0.9, 'size': 1.0, 'method': 1.0, 'average': 0.4, 'logIn': 0.8, 'Time_anomaly': 'False'}, {'Id': '192.168.0.229', 'time': '2021.08.18-07:03:40', 'time_points': 0.7, 'Country_flag': 'SUO', 'ip': 0.9, 'size': 1.0, 'method': 1.0, 'average': 0.4, 'logIn': 0.8, 'Time_anomaly': 'False'}, {'Id': '192.168.0.229', 'time': '2021.08.14-11:11:27', 'time_points': 1.0, 'Country_flag': 'SUO', 'ip': 0.9, 'size': 1.0, 'method': 1.0, 'average': 0.8, 'logIn': 0.8, 'Time_anomaly': 'False'}, {'Id': '192.168.0.229', 'time': '2021.10.23-04:43:17', 'time_points': 0.35, 'Country_flag': 'SUO', 'ip': 0.9, 'size': 1.0, 'method': 1.0, 'average': 0.4, 'logIn': 0.8, 'Time_anomaly': 'False'}, {'Id': '192.168.0.229', 'time': '2021.06.16-04:41:34', 'time_points': 0.35, 'Country_flag': 'SUO', 'ip': 0.9, 'size': 1.0, 'method': 1.0, 'average': 0.4, 'logIn': 0.8, 'Time_anomaly': 'False'}, {'Id': '192.168.0.229', 'time': '2021.01.12-22:48:33', 'time_points': 0.3, 'Country_flag': 'SUO', 'ip': 0.9, 'size': 1.0, 'method': 1.0, 'average': 0.4, 'logIn': 0.8, 'Time_anomaly': 'False'}, {'Id': '192.168.0.229', 'time': '2021.10.08-09:22:07', 'time_points': 1.0, 'Country_flag': 'SUO', 'ip': 0.9, 'size': 1.0, 'method': 1.0, 'average': 0.8, 'logIn': 0.8, 'Time_anomaly': 'False'}, {'Id': '192.168.0.229', 'time': '2021.08.14-11:36:50', 'time_points': 1.0, 'Country_flag': 'SUO', 'ip': 0.9, 'size': 1.0, 'method': 1.0, 'average': 0.8, 'logIn': 0.8}, {'Id': '192.168.0.229', 'time': '2021.06.22-11:17:58', 'time_points': 1.0, 'Country_flag': 'SUO', 'ip': 0.9, 'size': 1.0, 'method': 1.0, 'average': 0.8, 'logIn': 0.8}]}
 ```
+
+#### Figure
+
+After the data is formatted and .txt file is created script draws 3D figure of the data. Figure will have 3 different features:
+
+1. Datapoints inside of the Ip range - drawn with blue
+2. Datapoints outside of the Ip range, but not marked as anomaly - drawn with green
+3. Datapoints marked as anomaly - drawn with red, having * as marker and size is bigger than other datapoints
+
+Example of the figure:
+
+![Näyttökuva 2021-11-11 kello 14 26 44](https://user-images.githubusercontent.com/77785795/141302646-667caaac-dc9d-4f1a-8745-d8fad31f3435.png)
