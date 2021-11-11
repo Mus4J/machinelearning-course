@@ -133,22 +133,106 @@ SpotAnomaly script is used to process the files containing data, formatting data
 
 ### How does it work
 
+SpotAnomaly script runs in 3 steps: 
 
+1. Processing lines and formatting data,
+2. Generating outputfile from formatted data,
+3. Drawing figure
+
+#### Processing lines and formatting data
+
+##### Data lines
+
+Goes trough each line of data and calculates points for each feature on the line. 
+
+Features script calculates are:
+
+1. Time - Is the request made during the business hours or outside of it. If inside business hours this feature gets 1.0 as the value. If outside the range value is decreased on how far from the business hours it is down to 0.15 points.
+
+2. Source Ip - Which ip is the request made from. If is made from Ip range set in arguments this feature gets value of 1.0. If Ip belongs to blacklisted ip's (if set in arguments) this feature gets value of 0.0. Other vice it's calculated by the predefined countries ip ranges. This feature is calculated from the first ip space on the ip addresses. This way is not optimal, but it gives clear feeling how this could work, and work even better with proper librarys and valid ip's. <b>NOTE! These could be done with ipinfo (https://github.com/ipinfo/python) library if script would use real ips.</b>
+
+Predifend countries with predifened values:
+
+Australia(ips: 1-30) - 0.700000
+Russia(ips: 31-60) - 0.300000
+Pakistan(ips: 61-90) - 0.500000
+Intia(ips: 91-120) - 0.700000
+Israel(ips: 121-150) - 0.300000
+China(ips: 151-180) - 0.300000
+Finland(ips: 180-) - 0.900000
+
+These predifened ip values by countries are tweak by the occurance of ip ranges. More ips's in the set range are occured better default points it gets. 
+
+3. Size - If size is smaller than 3000 it gets value of 1.0, else if its 3000 or bigger and smaller than 5000 it gets value of 0.5, and if its bigger than 5000 it gets value of 0.
+
+4. Method - Method can be eather 1.0 or 0.0. Its determinated by waether method is exact with the default method (POST /api/example/login/?venue=dms HTTP/1.1 (application/json)) if not it gets 0.0, because it should always be exact with the default.
+
+5. Average - Weighted average from all feature values. It uses <b>numpy</b> method average(). Weightning:
+
+```
+ size_points = list_of_numbers[2]
+    if(list_of_numbers[3] != 1):
+        method_points = 4
+    else:
+        method_points = 1
+    if(size_points != 1):
+        if(size_points >= 0.7 and size_points < 1):
+            weights_for = [2, 1, 2, method_points]
+        elif(size_points > 0.4 and size_points < 0.7):
+            weights_for = [2, 1, 3, method_points]
+        elif(size_points < 0.4):
+            weights_for = [2, 1, 4, method_points]
+    else:
+        weights_for = [2, 1, 1, method_points]
+```
+Index 0 is time, Index 1 is Source Ip, Index 2 is Size and index 3 is Method. Which means that if the size feature is closer to the 0.0 it weights size more (=dominand trait). Also if the method points are other than 1.0 it gets weight value of 4 (=dominand trait).
+
+##### JSON lines
+
+When data lines are processed and formatted script goes trough JSON file. If the login related data line belongs to Ip range and login is success valu of login feature is set to 1.0. If the login related data line belongs to Ip range and login is not success valu of login feature is set to 0.8 Other difference outcoms are:
+
+  Finland - Success: 0.8 and Not Success: 0.6
+  Bad ip adress (ip feature points < 0) - Success: 0 and Not Success: 0.1
+  Ip from world (ip feature points < 0.5) - Success: 0 (if feature points are really small) or (ip feature points) * 0.5 and Not Success: (ip feature points) * (ip feature points)
+  
+ This feature and valu is added to the same line with other data
+
+##### Grouping data
+
+After all data is processed lines will be grouped by ip's. When data is grouped by ip's script checks what is the occurance of the logins from the various ip's. If there is more than 3 logins from the same ip and they are all inside of 1 minute its flagged as anomaly (True) otherwise its normal log in behavior (False).
+
+Example of the line generated in the script:
+
+```
+{'Id': '147.60.76.170', 'time': '2021.10.03-03:29:05', 'time_points': 0.25, 'Country_flag': 'ISR', 'ip': 0.30649299999982627, 'size': 1.0, 'method': 1.0, 'average': 0.4, 'logIn': 0.0939379590488935, 'Time_anomaly': 'False'}
+```
 
 ### Usage
 
 SpotAnomaly script takes 2 arguments and you can run it from the commandline.
 
 <b>Required:</b> Name of file as String where request data is
-  -d['testifile.txt'] | --dataFile['testifile.txt'] 
+  -d[testifile.txt] | --dataFile['testifile.txt'] 
   
 <b>Required:</b> Name of file as String where login data is
   -j[testi.json] | --jsonFile[testi.json]
 
+<b>Required:</b> Range of ips valid data will be generated along side of randomised ips data. Range of ip means first 3 address spaces between 0 and 255
+  -i[192.168.0.] | --iprange[192.168.0.]
+  
+<b>Optional:</b> Black listed ips seperated with semicolon(;). Accepts only digits
+  -b[255;244;249;230] | --blacklist[255;244;249;230]
+
 <b>Example line for valid usage:</b>
 ```
-python3 SpotAnomaly.py -d 'testi.txt' -j 'testi.json'
+python3 SpotAnomaly.py -d 'testi.txt' -j 'testi.json' -i '192.168.0.'
 ```
 
+<b>Example line for valid usage with blacklist parameter:</b>
+```
+python3 SpotAnomaly.py -d 'testi.txt' -j 'testi.json' -i '192.168.0.' -b '255;244;249;230'
+```
+
+<b>NOTE! IP RANGE SHOULD BE SAME AS USED IN DATA GENERATION</b>
 
 Output will generate result.txt file containing all the processed data on inlines and figure.
