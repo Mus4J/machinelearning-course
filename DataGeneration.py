@@ -7,7 +7,32 @@ import getopt
 import json
 import jsonlines
 
-# Generates 1 datarow with random ip inside of the range and writes it in the file
+# Generates datarows with anomaly in it, random ip and writes it in the file
+
+
+def generate_anomaly_data(file, index):
+    for x in range(5):
+        text = str(index + x) + ' | ' + str(random_date().strftime("%Y.%m.%d - %H:%M:%S")) + ' | ' + random_ip_NOTINRANGE() + \
+            ' | 10.0.0.1 | HTTP | ' + str(random.randrange(
+                1000, 2000)) + ' | POST /api/example/login/?venue=ask HTTP/1.1 (application/json)\n'
+        file.write(text)
+        generate_application_json_data(index + x, False)
+
+    for x in range(5):
+        text = str(index + x + 5) + ' | ' + str(random_date().strftime("%Y.%m.%d - %H:%M:%S")) + ' | ' + random_ip_NOTINRANGE() + \
+            ' | 10.0.0.1 | HTTP | ' + str(random.randrange(
+                3000, 10000)) + ' | POST /api/example/login/?venue=ask HTTP/1.1 (application/json)\n'
+        file.write(text)
+        generate_application_json_data(index + x + 5, False)
+
+    for x in range(5):
+        text = str(index + x + 10) + ' | ' + str(random_date().strftime("%Y.%m.%d - %H:%M:%S")) + ' | ' + random_ip_NOTINRANGE() + \
+            ' | 10.0.0.1 | HTTP | ' + str(random.randrange(
+                3000, 10000)) + ' | POST /api/example/login/?venue=ask HTTP/1.1 (application/json)\n'
+        file.write(text)
+        generate_application_json_data(index + x + 10, False)
+
+# Generates datarows with random ip inside of the range and writes it in the file
 
 
 def generate_valid_data_IPRANGE(file, iprange):
@@ -18,13 +43,13 @@ def generate_valid_data_IPRANGE(file, iprange):
         file.write(text)
         generate_application_json_data(x, True)
 
-# Generates 1 datarow with random ip outside of the range and writes it in the file
+# Generates datarows with random ip outside of the range and writes it in the file
 
 
 def generate_valid_data_WIDEIP(file):
     text = ''
     for x in range(2500):
-        text = str(x) + ' | ' + str(random_date().strftime("%Y.%m.%d - %H:%M:%S")) + ' | ' + random_ip_NOTINRANGE() + \
+        text = str(7500 + x) + ' | ' + str(random_date().strftime("%Y.%m.%d - %H:%M:%S")) + ' | ' + random_ip_NOTINRANGE() + \
             ' | 10.0.0.1 | HTTP | ' + str(random.randrange(
                 1000, 2000)) + ' | POST /api/example/login/?venue=dms HTTP/1.1 (application/json)\n'
         file.write(text)
@@ -129,6 +154,19 @@ def random_ip_NOTINRANGE():
     ip = '.'.join('%s' % random.randint(0, 255) for i in range(4))
     return ip
 
+
+def execute_anomalydatageneration(outputfile):
+    with open(outputfile, 'r') as file:
+        first_line = file.readline()
+        for last_line in file:
+            pass
+        index_of_the_data = int(last_line.split('|')[0].strip())+1
+    file.close()
+    with open(outputfile, 'a') as file:
+        generate_anomaly_data(file, index_of_the_data)
+    file.close()
+
+
 # Entry method to generate file
 # Testi tiedosto = data.txt
 # Testi iprange = '192.168.'
@@ -146,7 +184,8 @@ def execute_validdatageneration(outputfile, iprange):
 def main(argv):
     outputfile = ''
     ip_range = ''
-    print(len(argv))
+    method = ''
+
     try:
         opts, args = getopt.getopt(
             argv, "h:m:o:i:", ["help=", "method=", "ofile=", "iprange="])
@@ -163,11 +202,18 @@ def main(argv):
         if opt in ("-o", "--ofile"):
             outputfile = arg
         elif opt in ("-i", "--iprange"):
-            ip_range = arg
-    print(outputfile)
-    print(ip_range)
-    if(outputfile != '' and ip_range != ''):
+            if(len(arg) < 10):
+                print('IP range length is too small')
+            elif(len(arg) > 10):
+                print('IP range length is too large')
+            else:
+                ip_range = arg
+        elif opt in ("-m", "--method"):
+            method = arg
+    if(outputfile != '' and ip_range != '' and method == 'base'):
         execute_validdatageneration(outputfile, ip_range)
+    elif(outputfile != '' and method == 'anomalydata'):
+        execute_anomalydatageneration(outputfile)
     else:
         print('Message: Argument missing.')
         print()
@@ -180,5 +226,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-
     main(sys.argv[1:])
