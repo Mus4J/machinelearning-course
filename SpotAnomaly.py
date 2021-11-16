@@ -400,6 +400,7 @@ def drawResult(ipRange):
 
     ax = plt.axes(projection='3d')
     ax.grid(False)
+
     for key in groups:
         for data in groups[key]:
             feature_points = 0
@@ -433,7 +434,92 @@ def drawResult(ipRange):
     ax.scatter3D(xl, yl, zl, s=5, marker='o', c='blue')
     ax.scatter3D(xs, ys, zs, s=20, marker='*', c='red')
 
+    data_toPlot = draw_scatter_2D(groups, ipRange)
+
+    x1 = data_toPlot[2]
+    y1 = data_toPlot[0]
+    x2 = data_toPlot[3]
+    y2 = data_toPlot[1]
+    x3 = data_toPlot[5]
+    y3 = data_toPlot[4]
+    x4 = data_toPlot[7]
+    y4 = data_toPlot[6]
+
+    fig = plt.figure(figsize=(10, 10))
+    fig.suptitle('Scatter Plot', fontsize=14, fontweight='bold')
+    ay = fig.add_subplot(111)
+
+    fig.subplots_adjust(top=0.85)
+    ay.set_xlabel('Time')
+    ay.set_ylabel('Value (AVG)')
+
+    total_txt = 'Total of entries: ' + str(len(x1)+len(x2)+len(x3))
+    total_txt2 = 'IP range: GREEN'
+    total_txt3 = 'Normal: SKYBLUE'
+    total_txt4 = 'Low IP points (close to anomaly): GREY'
+    total_txt5 = 'Anomaly: RED'
+
+    text_x_axis_value = 0.9
+    ay.text(text_x_axis_value, 0.90, total_txt, horizontalalignment='center',
+            verticalalignment='center', transform=ay.transAxes)
+    ay.text(text_x_axis_value, 0.87, total_txt2, horizontalalignment='center',
+            verticalalignment='center', transform=ay.transAxes)
+    ay.text(text_x_axis_value, 0.85, total_txt3, horizontalalignment='center',
+            verticalalignment='center', transform=ay.transAxes)
+    ay.text(text_x_axis_value, 0.83, total_txt4, horizontalalignment='center',
+            verticalalignment='center', transform=ay.transAxes)
+    ay.text(text_x_axis_value, 0.81, total_txt5, horizontalalignment='center',
+            verticalalignment='center', transform=ay.transAxes)
+
+    ay.plot_date(x1, y1, xdate=True, ydate=False, color='skyblue')
+    ay.plot_date(x2, y2, xdate=True, ydate=False, color='red')
+    ay.plot_date(x3, y3, xdate=True, ydate=False, color='grey')
+    ay.plot_date(x4, y4, xdate=True, ydate=False, color='green')
+
     plt.show()
+
+
+def draw_scatter_2D(groups, ipRange):
+    normal_data_avg = []
+    anomaly_data_avg = []
+    normal_data_dates = []
+    anomaly_data_dates = []
+    ipFlag_data_dates = []
+    ipFlag_data_avg = []
+    ipRange_data_dates = []
+    ipRange_data_avg = []
+
+    for key in groups:
+        for data in groups[key]:
+            if(data['average'] >= 0.4):
+                if not 'Time_anomaly' in data:
+                    normal_data_avg.append(data['average'])
+                    normal_data_dates.append(
+                        pd.to_datetime(data['time'].split('-')[0].replace('.', '-')))
+                    continue
+                if(data['Time_anomaly'] == True):
+                    anomaly_data_avg.append(data['average'])
+                    anomaly_data_dates.append(pd.to_datetime(
+                        data['time'].split('-')[0].replace('.', '-')))
+                elif(data['ip'] < 0.3):
+                    ipFlag_data_avg.append(data['average'])
+                    ipFlag_data_dates.append(pd.to_datetime(
+                        data['time'].split('-')[0].replace('.', '-')))
+                elif(ipRange in data['Id']):
+                    ipRange_data_dates.append(data['average'])
+                    ipRange_data_avg.append(
+                        pd.to_datetime(data['time'].split('-')[0].replace('.', '-')))
+                else:
+                    normal_data_avg.append(data['average'])
+                    normal_data_dates.append(
+                        pd.to_datetime(data['time'].split('-')[0].replace('.', '-')))
+            else:
+                anomaly_data_avg.append(data['average'])
+                anomaly_data_dates.append(
+                    pd.to_datetime(data['time'].split('-')[0].replace('.', '-')))
+
+    return [normal_data_avg, anomaly_data_avg,
+            normal_data_dates, anomaly_data_dates, ipFlag_data_avg, ipFlag_data_dates, ipRange_data_dates, ipRange_data_avg]
 
 
 # Execute script and spot anomaly
