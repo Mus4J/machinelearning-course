@@ -270,6 +270,11 @@ After the data is formatted and .txt file is created script draws 3D figure of t
 2. Datapoints outside of the Ip range, but not marked as anomaly - drawn with green
 3. Datapoints marked as anomaly - drawn with red, having * as marker and size is bigger than other datapoints
 
-Example of the figure:
+Example figure:
 
 ![Näyttökuva 2021-11-11 kello 14 26 44](https://user-images.githubusercontent.com/77785795/141302646-667caaac-dc9d-4f1a-8745-d8fad31f3435.png)
+
+Example figure 2:
+
+<img width="1201" alt="Näyttökuva 2021-12-2 kello 19 22 00" src="https://user-images.githubusercontent.com/77785795/144471960-2660a530-d1c2-4ee4-98e8-ea997906de82.png">
+
