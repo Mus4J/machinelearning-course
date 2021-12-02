@@ -1,5 +1,43 @@
 # Koneoppimismenetelmät - KYBS3050
 
+## Explanation
+
+This section includes my toughts on the assigment and how did i manage to do. More details on how to install and use the scripts you can find from Installation and Usage parts of this file.
+
+### Data
+
+In this scirpt data will be generated to mimic HTTP POST Request made on websites Login page. Way the data looks and feels is like in a real enviroment. Alltough all the ip addresses used are not real ip addresses so we cant use real world ip address detect libraries. But as i have explained and higlighted in the code it can be achieved. This way there is possibilities to get even more features of ip addresses. 
+
+In the datageneration script data generated is splitted in to the 4 groups. Three of the groups are created in "base" -method. Those 3 groups of data contain:
+
+  1. Data where ip range is inside of the companys (given as argument) whitelisted like ips. In this data group all the log in's are valid ones.
+  2. Data where ip's are randomized, but actions done are some what valid and therefore flagged as normal behavior. This mimic remote accessees (home office,     
+     business trip etc.). In this data group log in passwords might be incorrect, but they can been seen as failed log ins, not intrusion.
+  3. Anomaly or close to anomaly. Ip's are from countries or behavior is somewhat intrusive or fishy. There can be too large payloads, fishy ip's and multiple    
+     failed logins in a small period of time.
+
+Fourt group of data is made with "anomalydata" -method. This group of data contains only anomaly behavior. In theree ip's are from blacklisted ip's or from fishy countries (countries where company's employees should not be accessing to the website). Payloads are huge (comparing normal behavior), headers can be temperatured and other kind of anomaly including behaviors.
+
+When data is created its allways added to the same files script makes. Script makes two files, which are .txt file for the header and content of the HTTP POST request and .json file which contains log in information. Normally log in information will be found insede HTTP POST reaquest.
+
+### Data processing
+
+Data is processed in a way that different features of the HTTP POST reaquest are found. These features are then calculated by weighted average to give points to each data entry. Other things there will be higlighted are point's gathered from ip. This feature is processed by machine learning algorithm which calculates occurance of each ip -address and adjusting ip scores of different ip ranges. For and example if there is a lot of log in's from Sweden, algorithm concludes that those ip's from Sweden are trusted. By using real ip's this could be pinged in smaler scale to detect part of the town in different countries, network service provider, public vs private network etc. This way algorithm could be trained to detect and follow different features of the ip's and with those finding adjust score system to detect better ip's that are normal behavior vs. fishy behavior.
+
+Third main feature im calculating is log in points. Log in points include time of login (which is also machine learning based) and success vs unsuccess log in's. From the time of log in is most dominant feature. With this feature can algorithm be trained to detect different users/ip's on what are they trends to log in. For an example someone could log in mostly night time because they like to work that period of time.
+
+#### Clustering
+
+Processed data is clustured by the ip-ranges and exact ip's so that time occurances and other features can be cross referenced and analysed. This way algrotihm can better detect trends in different ips, and different ip ranges.
+
+#### Classification
+
+Data is classified by it features. Each data entry can also get anomlay flag (anomaly == True) and then it can be straightly classified as anomaly without futher analysis. One example of this is if the ip address is in the blocklist. I tried to classifie the data as a whole by its features, and as individual feature by it self.
+
+#### Analysis
+
+I think data prosessing i have done is working really well and it surely can detect anomaly like behavior. Alltough its working mostly as rule based machine learning algorithm, it have machine learning features and with valid ip data and fine tuning it could be implemented as more dominant machine learning algorithm including in depth user analysis and behavioral analysis.
+
 ## Installation
 
 To download Git repository use git clone command.
@@ -277,4 +315,3 @@ Example figure:
 Example figure 2:
 
 <img width="1201" alt="Näyttökuva 2021-12-2 kello 19 22 00" src="https://user-images.githubusercontent.com/77785795/144471960-2660a530-d1c2-4ee4-98e8-ea997906de82.png">
-
