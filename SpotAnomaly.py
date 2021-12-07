@@ -527,7 +527,7 @@ def draw_scatter_2D(groups, ipRange):
 
 def execute(dataFile, jsonFile, ipRange, blackList):
     calculatePoinst(dataFile, jsonFile, ipRange, blackList)
-    # generateOutputFile()
+    generateOutputFile()
     drawResult(ipRange)
 
 # Entry method to check arguments

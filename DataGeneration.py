@@ -4,7 +4,7 @@ from datetime import datetime
 import random
 import sys
 import getopt
-import json
+import js
 import jsonlines
 
 # Generates datarows with anomaly in it, random ip and writes it in the file
