@@ -315,3 +315,20 @@ Example figure:
 Example figure 2:
 
 <img width="1201" alt="Näyttökuva 2021-12-2 kello 19 22 00" src="https://user-images.githubusercontent.com/77785795/144471960-2660a530-d1c2-4ee4-98e8-ea997906de82.png">
+
+## Scripts evaluation
+
+I used Minimial learning machine training to evaluate how the script works. 
+
+LISÄÄÄ...
+
+### Usage
+
+Use with command python3 MachineLearning.py -i <file> 
+  in use case: python3 MachineLearning.py -i 'result.txt'  
+  
+### Findings
+  
+WHAT I LEARNED...
+  
+IMAGE...
