@@ -14,8 +14,9 @@ import ast
 def mlm_train(X, R, Y, T):
     D_x = sp.spatial.distance.cdist(X, R)
     Delta_y = sp.spatial.distance.cdist(Y, T)
-    B = np.matmul(np.matmul(np.linalg.inv(
+    B = np.matmul(np.matmul(np.linalg.pinv(
         np.matmul(np.transpose(D_x), D_x)), np.transpose(D_x)), Delta_y)
+    #B = np.linalg.pinv(D_x, Delta_y)
     return B
 
 # Minimal learning machine testing
@@ -72,75 +73,102 @@ def execute(inputfile):
     dataset = process_data(inputfile)
 
     test_set_size = 30
-    test_dataset = []
-    show_test_dataset = []
 
     X = dataset.keys()
     Y = [[]]
+    N_data = [[]]
     for x, data in enumerate(dataset):
         list = []
+        list2 = []
         for i, single in enumerate(dataset.get(data)):
             list.append(single['average'])
-            show_test_dataset.append(single['average'])
+            list2.append(single['time_points'])
+            list2.append(single['ip'])
+            list2.append(single['size'])
+            list2.append(single['method'])
+            list2.append(single['logIn'])
         Y.append(list)
-        test_dataset.append(np.array(list))
-    # a = np.array([np.array([1,2,3]),np.array([2,3,4]),np.array([6,7,8])])
+        N_data.append(list2)
 
-    new_test_dataset = []
-    start = 0
-    end = 3
-    for i in range(10):
-        new_test_dataset.append(test_dataset[start:end])
-        start += 3
-        end += 3
+    list = []
+    list2 = []
 
-    X, Y = sklearn.datasets.make_moons()
-    X, Y = sklearn.datasets.make_swiss_roll()
+    for x, data_list in enumerate(Y):
+        if(len(data_list) == 1):
+            list.append(data_list)
 
-    ids = np.arange(0, X.shape[0])
+    list = np.array(list)
+
+    for x, data_list in enumerate(N_data):
+        if(len(data_list) == 5):
+            list2.append(data_list)
+
+    list2 = np.array(list2)
+
+    # print(list2)
+
+    #X, Y = sklearn.datasets.make_moons()
+    #X, Y = sklearn.datasets.make_swiss_roll()
+
+    ids = np.arange(0, list.shape[0])
     np.random.shuffle(ids)
 
-    x_test = X[ids[0:test_set_size], :].reshape(test_set_size, X.shape[1])
-    y_test = Y[ids[0:test_set_size]]
+    ids2 = np.arange(0, list2.shape[0])
+    np.random.shuffle(ids2)
 
-    # print(test_dataset)
-    # test_dataset = test_dataset[ids[test_set_size::]].reshape(X.shape[0], 1)
-    #new_test_dataset = new_test_dataset[ids[test_set_size::], :]
+    x_test = list[ids[0:test_set_size], :].reshape(
+        test_set_size, list.shape[1])
+    y_test = list[ids[0:test_set_size]]
 
-    X = X[ids[test_set_size::], :]
-    Y = Y[ids[test_set_size::]].reshape(X.shape[0], 1)
-    R = X[::1, :]
-    T = Y[::1].reshape(Y[::1].shape[0], 1)
+    x_test2 = list2[ids2[0:test_set_size], :].reshape(
+        test_set_size, list2.shape[1])
+    y_test2 = list2[ids2[0:test_set_size]]
+
+    X = list[ids[test_set_size::], :]
+    Y = list[ids[test_set_size::]].reshape(-1, 1)
+    R = list[::1, :]
+    T = list[::1].reshape(list[::1].shape[0], 1)
+
+    X2 = list2
+    Y2 = list2
+    R2 = list2[::5, :]
+    T2 = list2
 
     B = mlm_train(X, R, Y, T)
+    B2 = mlm_train(X2, R2, Y2, T2)
 
-    y, a_d = mlm_test(x_test, R, T, B)
     y = mlm_majority_voting(x_test, R, T, B, k=1, metriX='euclidean')
 
-    y = np.squeeze(y)
+    y2 = mlm_majority_voting(x_test2, R2, T2, B2, k=1, metriX='euclidean')
 
-    new_test_dataset = np.array(new_test_dataset)
-    #test_dataset = np.array(test_dataset)
-    print(show_test_dataset)
+    y2 = np.squeeze(y2)
 
     plt.figure(figsize=(15, 5))
 
-    plt.subplot(1, 3, 1)
+    plt.subplot(1, 4, 1)
     plt.scatter(y, y_test, c=np.round(y))
     plt.scatter(y, y_test, c=np.round(y))
     plt.xlabel('Luokittelutulos')
     plt.ylabel('Taustatotuus')
     plt.title('Luokittelun tulokset ristiintaulukoitu')
 
-    plt.subplot(1, 3, 2)
-    plt.scatter(X[:, 0], X[:, 1], marker='*', c=Y.squeeze(), alpha=0.5)
+    plt.subplot(1, 4, 2)
+    plt.scatter(X[:, :], X[:, :], marker='*', c=Y.squeeze(), alpha=0.5)
+    plt.scatter(x_test[:, :], x_test[:, :], c=np.round(y))
+
+    plt.subplot(1, 4, 3)
+    plt.scatter(y2, y_test2, c=np.round(y2))
+    plt.scatter(y2, y_test2, c=np.round(y2))
+    plt.xlabel('Luokittelutulos')
+    plt.ylabel('Taustatotuus')
+    plt.title('Luokittelun tulokset ristiintaulukoitu')
+
+    plt.subplot(1, 4, 4)
+    plt.scatter(X2[:, :], X2[:, :], marker='*', c=Y2.squeeze(), alpha=0.5)
     plt.colorbar()
-    plt.scatter(x_test[:, 0], x_test[:, 1], c=np.round(y))
-    plt.scatter(x_test[0, 0], x_test[0, 2], marker='o', s=100, c='red')
+    plt.scatter(x_test2[:, :], x_test2[:, :], c=np.round(y2))
     plt.colorbar()
 
-    plt.subplot(1, 3, 3)
-    plt.scatter(show_test_dataset, show_test_dataset)
     plt.show()
 
     # spotAnomaly(dataset)
