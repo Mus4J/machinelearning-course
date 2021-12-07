@@ -358,7 +358,7 @@ After all the training and testing 4 figures will be created. First 2 will conta
   
 MLM matched quite well with the SpotAnomaly detection. It was able to get similiar or at least same inline conclusions than SpotAnomaly script did. On side note, one of the reason for that might be that the data was pre-prosessed in SpotAnomaly script. 
 
-Hardest part was to tune MLM to work in the use case and be able to fit the data in it. Second hardes part was setting up parameters/features to get indendent results out of the algorithm. 
+Hardest part was to tune MLM to work in the use case and be able to fit the data in it. This is shown especially with the average data, because it has only one dimension (1D). Therefore it was hard to normalize all the data to fit in to the model.  Second hardes part was setting up parameters/features to get indendent results out of the algorithm. 
 
 I think i was able to tackle both challenges quite well because results were so well in line with the SpotAnomaly results.
 
