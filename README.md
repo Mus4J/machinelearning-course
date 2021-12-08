@@ -366,5 +366,6 @@ One think i could have done better was creting more samelike figures to emphesis
   
 Result figure:
 
-<img width="1342" alt="Näyttökuva 2021-12-7 kello 22 55 07" src="https://user-images.githubusercontent.com/77785795/145107793-96ac89f3-1de4-4c4d-b9b3-18347940478a.png">
+<img width="1316" alt="Näyttökuva 2021-12-8 kello 12 05 36" src="https://user-images.githubusercontent.com/77785795/145189371-5fb1b613-c8ff-4d4d-aa7e-161b07a95a99.png">
+
 
